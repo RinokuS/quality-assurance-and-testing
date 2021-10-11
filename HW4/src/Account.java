@@ -71,7 +71,7 @@ public class Account
   
   public boolean unblock()
   {
-    if(balance < getMaxCredit())
+    if(balance < maxCredit)
       return false;
     else
       blocked = false;

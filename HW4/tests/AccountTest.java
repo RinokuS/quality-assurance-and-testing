@@ -56,13 +56,20 @@ class AccountTest {
 
     @Test
     void block() {
+        assertFalse(account.isBlocked());
         account.block();
+        assertTrue(account.blocked);
+        assertTrue(account.isBlocked());
+        // test if block method inverts current value
+        account.block();
+        assertTrue(account.blocked);
         assertTrue(account.isBlocked());
     }
 
     @Test
     void unblockUnSuccess() {
         account.block();
+        account.balance = -(account.getMaxCredit() + 100);
         boolean answer = account.unblock();
         assertFalse(answer);
         assertTrue(account.isBlocked());
@@ -71,7 +78,6 @@ class AccountTest {
     @Test
     void unblockSuccess() {
         account.block();
-        account.balance = 1000;
         boolean answer = account.unblock();
         assertTrue(answer);
         assertFalse(account.isBlocked());
