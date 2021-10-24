@@ -340,12 +340,14 @@ class VendingMachineTest {
     @Test
     void returnMoneyAccess() {
         assertEquals(machine.returnMoney(), VendingMachine.Response.OK);
+        assertEquals(machine.getCurrentBalance(), 0);
 
         machine.enterAdminMode(correctCode);
         assertEquals(machine.returnMoney(), VendingMachine.Response.ILLEGAL_OPERATION);
 
         machine.exitAdminMode();
         assertEquals(machine.returnMoney(), VendingMachine.Response.OK);
+        assertEquals(machine.getCurrentBalance(), 0);
     }
 
     @Test
@@ -359,6 +361,7 @@ class VendingMachineTest {
         }
 
         assertEquals(machine.returnMoney(), VendingMachine.Response.OK);
+        assertEquals(machine.getCurrentBalance(), 0);
 
         machine.enterAdminMode(correctCode);
         assertEquals(machine.getCoins1(), 4);
@@ -377,6 +380,7 @@ class VendingMachineTest {
         }
 
         assertEquals(machine.returnMoney(), VendingMachine.Response.OK);
+        assertEquals(machine.getCurrentBalance(), 0);
 
         machine.enterAdminMode(correctCode);
         assertEquals(machine.getCoins1(), 4);
@@ -396,6 +400,7 @@ class VendingMachineTest {
         machine.putCoin2();
 
         assertEquals(machine.returnMoney(), VendingMachine.Response.OK);
+        assertEquals(machine.getCurrentBalance(), 0);
 
         machine.enterAdminMode(correctCode);
         assertEquals(machine.getCoins1(), 4);
