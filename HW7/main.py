@@ -24,7 +24,7 @@ def change_post_privacy(driver):
     driver.get("https://ruswizard.su/test/wp-admin/edit.php")
     WebDriverWait(driver, 100).until(EC.visibility_of_element_located((By.CSS_SELECTOR, ".wp-heading-inline")))
 
-    post = driver.find_element(By.ID, "post-23633")
+    post = driver.find_element(By.CLASS_NAME, "title.column-title.has-row-actions.column-primary.page-title")
     ActionChains(driver).move_to_element(post).perform()
 
     driver.find_element(By.CLASS_NAME, "button-link.editinline").click()
@@ -63,7 +63,6 @@ def create_post_on_hold(driver, text):
     WebDriverWait(driver, 100).until(
         EC.visibility_of_element_located((By.CLASS_NAME, "components-datetime__time-field-hours-input")))
     h_field = driver.find_element(By.CLASS_NAME, "components-datetime__time-field-hours-input")
-    m_field = driver.find_element(By.CLASS_NAME, "components-datetime__time-field-minutes-input")
 
     hours = int(h_field.get_attribute("value")) + 1
 
@@ -121,6 +120,12 @@ def add_comment(driver, link, bad=False, logged=False):
     return text
 
 
+def check_page_text(driver, link, text):
+    driver.get(link)
+    WebDriverWait(driver, 100).until(EC.visibility_of_element_located((By.CLASS_NAME, "entry-title")))
+    assert driver.find_element(By.CLASS_NAME, "entry-title").text == text
+
+
 class WebTest(unittest.TestCase):
     def setUp(self):
         self.driver = webdriver.Chrome("/Users/rinokus/Downloads/chromedriver")
@@ -157,9 +162,7 @@ class WebTest(unittest.TestCase):
         link = create_post_on_hold(driver, text)
 
         second_driver = webdriver.Chrome("/Users/rinokus/Downloads/chromedriver")
-        second_driver.get(link)
-        WebDriverWait(second_driver, 100).until(EC.visibility_of_element_located((By.CLASS_NAME, "entry-title")))
-        assert second_driver.find_element(By.CLASS_NAME, "entry-title").text == "Страница не найдена"
+        check_page_text(second_driver, link, "Страница не найдена")
         second_driver.close()
 
         driver.get("https://ruswizard.su/test/wp-admin/edit.php")
@@ -167,55 +170,70 @@ class WebTest(unittest.TestCase):
         delete_post(driver, "Задержка в развитии", True)
 
     # Сценарий:
-    # На аккаунте пользователя есть одна заранее созданная запись
+    # Пользователь создает запись
     # Происходит попытка просмотреть запись с другого аккаунта, запись должна быть видима.
     # Происходит попытка просмотреть запись без аккаунта аккаунта, запись должна быть видима.
+    # После прохождения всех проверок пользователь удаляет запись
     def test_record_from_another_account(self):
         driver = self.driver
-        second_driver = webdriver.Chrome("/Users/rinokus/Downloads/chromedriver")
         driver.implicitly_wait(100)
 
-        login('BigDickIsBackInTown', '12345678', driver)
-        # Проверяем запись с чужого аккаунта
-        driver.get('https://ruswizard.su/test/2021/11/22/1000-7/')
-        WebDriverWait(driver, 100).until(EC.visibility_of_element_located((By.CLASS_NAME, "entry-title")))
-        assert driver.find_element(By.CLASS_NAME, "entry-title").text == "1000 — 7"
+        login('dead_inside', '123', driver)
+        text = "1000 - 7"
+        link = create_post(driver, text)
 
-        # Проверяем без аккаунта
-        second_driver.get('https://ruswizard.su/test/2021/11/22/1000-7/')
-        WebDriverWait(second_driver, 100).until(EC.visibility_of_element_located((By.CLASS_NAME, "entry-title")))
-        assert second_driver.find_element(By.CLASS_NAME, "entry-title").text == "1000 — 7"
+        second_driver = webdriver.Chrome("/Users/rinokus/Downloads/chromedriver")
+        login('BigDickIsBackInTown', '12345678', second_driver)
+        # Проверяем запись с чужого аккаунта
+        check_page_text(second_driver, link, "1000 — 7")
         second_driver.close()
 
+        # Проверяем без аккаунта
+        third_driver = webdriver.Chrome("/Users/rinokus/Downloads/chromedriver")
+        check_page_text(third_driver, link, "1000 — 7")
+        third_driver.close()
+
+        delete_post(driver, "1000 — 7")
+
     # Сценарий:
-    # На аккаунте пользователя есть одна заранее созданная публичная запись,
-    # пользователь изменяет настройки приватности, чтобы запись стала личной и сохраняет настройки.
+    # Пользователь создает запись,
+    # изменяет настройки приватности, чтобы запись стала личной, и сохраняет настройки.
     # Происходит попытка просмотреть запись с другого аккаунта, записи по ссылке быть не должно.
     # Происходит попытка просмотреть запись без аккаунта аккаунта, записи по ссылке быть не должно.
-    # После всех проверок настройки приватности записи возвращаются назад
+    # Настройки приватность возвращаются назад и проверяется просмотр той же записи (после рефреша страницы)
+    # Происходит попытка просмотреть запись с другого аккаунта, запись должна быть видима.
+    # Происходит попытка просмотреть запись без аккаунта аккаунта, запись должна быть видима.
+    # После всех проверок запись удаляется
     def test_private_record_from_another_account(self):
         driver = self.driver
         driver.implicitly_wait(100)
 
         login('dead_inside', '123', driver)
+        text = "1000 - 7"
+        link = create_post(driver, text)
         change_post_privacy(driver)
 
         second_driver = webdriver.Chrome("/Users/rinokus/Downloads/chromedriver")
-        third_driver = webdriver.Chrome("/Users/rinokus/Downloads/chromedriver")
         login('BigDickIsBackInTown', '12345678', second_driver)
         # Проверяем запись с чужого аккаунта
-        second_driver.get('https://ruswizard.su/test/2021/11/21/1000-7/')
-        WebDriverWait(second_driver, 100).until(EC.visibility_of_element_located((By.CLASS_NAME, "entry-title")))
-        assert second_driver.find_element(By.CLASS_NAME, "entry-title").text == "Страница не найдена"
+        check_page_text(second_driver, link, "Страница не найдена")
+
+        # Проверяем без аккаунта
+        third_driver = webdriver.Chrome("/Users/rinokus/Downloads/chromedriver")
+        check_page_text(third_driver, link, "Страница не найдена")
+
+        change_post_privacy(driver)
+
+        # Проверяем запись с чужого аккаунта
+        second_driver.refresh()
+        check_page_text(second_driver, link, "1000 — 7")
         second_driver.close()
 
         # Проверяем без аккаунта
-        third_driver.get('https://ruswizard.su/test/2021/11/21/1000-7/')
-        WebDriverWait(third_driver, 100).until(EC.visibility_of_element_located((By.CLASS_NAME, "entry-title")))
-        assert third_driver.find_element(By.CLASS_NAME, "entry-title").text == "Страница не найдена"
+        third_driver.refresh()
+        check_page_text(third_driver, link, "1000 — 7")
         third_driver.close()
-
-        change_post_privacy(driver)
+        delete_post(driver, "1000 — 7")
 
     # Сценарий:
     # Пользователь создает запись и оставляет на ней комментарий с модерируемым словом - "geek",
