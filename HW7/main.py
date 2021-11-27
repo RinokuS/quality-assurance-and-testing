@@ -63,8 +63,17 @@ def create_post_on_hold(driver, text):
     WebDriverWait(driver, 100).until(
         EC.visibility_of_element_located((By.CLASS_NAME, "components-datetime__time-field-hours-input")))
     h_field = driver.find_element(By.CLASS_NAME, "components-datetime__time-field-hours-input")
+    m_field = driver.find_element(By.CLASS_NAME, "components-datetime__time-field-minutes-input")
 
-    hours = int(h_field.get_attribute("value")) + 1
+    hours = int(h_field.get_attribute("value"))
+    minutes = int(m_field.get_attribute("value"))
+
+    #hours = int(h_field.get_attribute("value")) + 1
+    if minutes + 2 > 59:
+        hours += 1
+        minutes = minutes + 1 - 59
+    else:
+        minutes += 2
 
     driver.find_element(By.CLASS_NAME, "components-datetime__time-field-hours-input").click()
     time.sleep(0.5)
@@ -73,6 +82,14 @@ def create_post_on_hold(driver, text):
     driver.find_element(By.CLASS_NAME, "components-datetime__time-field-hours-input").send_keys(Keys.BACK_SPACE)
     time.sleep(0.5)
     driver.find_element(By.CLASS_NAME, "components-datetime__time-field-hours-input").send_keys(str(hours))
+    time.sleep(0.5)
+    driver.find_element(By.CLASS_NAME, "components-datetime__time-field-minutes-input").click()
+    time.sleep(0.5)
+    driver.find_element(By.CLASS_NAME, "components-datetime__time-field-minutes-input").send_keys(Keys.ARROW_RIGHT)
+    driver.find_element(By.CLASS_NAME, "components-datetime__time-field-minutes-input").send_keys(Keys.BACK_SPACE)
+    driver.find_element(By.CLASS_NAME, "components-datetime__time-field-minutes-input").send_keys(Keys.BACK_SPACE)
+    time.sleep(0.5)
+    driver.find_element(By.CLASS_NAME, "components-datetime__time-field-minutes-input").send_keys(str(minutes))
     time.sleep(0.5)
 
     # чтобы поле ввода закрылось и значения сохранились
@@ -167,6 +184,12 @@ class WebTest(unittest.TestCase):
 
         driver.get("https://ruswizard.su/test/wp-admin/edit.php")
         assert driver.find_element(By.CLASS_NAME, "post-state").text == "Запланировано"
+
+        time.sleep(120)
+        second_driver = webdriver.Chrome("/Users/rinokus/Downloads/chromedriver")
+        check_page_text(second_driver, link, "Задержка в развитии")
+        second_driver.close()
+
         delete_post(driver, "Задержка в развитии", True)
 
     # Сценарий:
