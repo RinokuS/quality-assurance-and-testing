@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="jazzer_api_deploy">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/Downloads/jazzer-macos-0.10.0/jazzer_api_deploy.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

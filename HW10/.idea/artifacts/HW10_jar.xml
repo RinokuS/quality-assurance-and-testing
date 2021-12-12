@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="HW10:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/HW10_jar</output-path>
+    <root id="archive" name="HW10.jar">
+      <element id="module-output" name="HW10" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/jazzer-macos-0.10.0/jazzer_api_deploy.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
